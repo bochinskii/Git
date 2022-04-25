@@ -1,0 +1,72 @@
+---------
+Установка
+---------
+
+Оффициальный сайт
+
+https://git-scm.com/
+
+--------------------
+Установка на Windows
+--------------------
+
+https://git-scm.com/download/win
+
+Установка очень простая
+
+-------------------
+Установка на Linux
+------------------
+
+https://git-scm.com/download/linux
+
+Установка очень простая
+
+------------
+Конфигурация
+------------
+
+Установим свое имя и электронный адрес.
+
+Запишем их в переменные т.к. так проще (Windows)
+
+SET GIT_USERNAME=Denis Bochinskii
+SET GIT_USEREMAIL=denis.bochinskii@gmail.com
+
+$ git config --global user.name "%GIT_USERNAME%"
+
+$ git config --global user.email "%GIT_USEREMAIL%"
+
+$ git config -l
+...
+user.name=Denis Bochinskii
+user.email=denis.bochinskii@gmail.com
+
+
+Запишем их в переменные т.к. так проще (Linux)
+
+export GIT_USERNAME="Denis Bochinskii"
+export GIT_USEREMAIL="denis.bochinskii@gmail.com"
+
+$ git config --global user.name "$GIT_USERNAME"
+
+$ git config --global user.email "$GIT_USEREMAIL"
+
+$ git config -l
+user.name=Denis Bochinskii
+user.email=denis.bochinskii@gmail.com
+
+Посмотреть сам файл конфигурации (Windows)
+
+$ type %userprofile%\.gitconfig
+[user]
+        name = Denis Bochinskii
+        email = denis.bochinskii@gmail.com
+
+
+Посмотреть сам файл конфигурации (Linux)
+
+$ cat ~/.gitconfig
+[user]
+	name = Denis Bochinskii
+	email = denis.bochinskii@gmail.com

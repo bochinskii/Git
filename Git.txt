@@ -459,9 +459,99 @@ nothing to commit, working tree clean
 
 
 
+---------------------------------
+Разъяснение касательно директорий
+---------------------------------
 
+Что касается папок в репозитории, так они попадают туда, если там есть файлы
 
+$ mkdir {folder_1,folder_2}
 
+$ git status
+On branch master
+nothing to commit, working tree clean
+
+$ cp file_1.txt folder_1/
+$ cp file_1.txt folder_2/
+
+Как мы видим, теперь директории попали в репозиторий, но не видно что именно в них.
+
+$ git status
+On branch master
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	folder_1/
+	folder_2/
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+Чтобы увидеть какие именно файлы в директориях
+
+$ git status -uall
+On branch master
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	folder_1/file_1.txt
+	folder_2/file_1.txt
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+$ git add .
+
+$ git status
+On branch master
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	new file:   folder_1/file_1.txt
+	new file:   folder_2/file_1.txt
+
+$ git commit -m "Copy file_1.txt, file_2.txt in folder_1 folder"
+[master 68484f6] Copy file_1.txt, file_2.txt in folder_1 folder
+ 2 files changed, 6 insertions(+)
+ create mode 100644 folder_1/file_1.txt
+ create mode 100644 folder_2/file_1.txt
+denisb@denisb-ws:~/WORK/test$ git status
+On branch master
+nothing to commit, working tree clean
+
+Директории, так же как и файлы можно игнорировать репозиторием
+
+$ mkdir folder_3
+$ cp file_2.txt folder_3/
+
+$ git status -uall
+On branch master
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	folder_3/file_2.txt
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+$ nano .gitignore
+file_3.txt
+folder_3/*
+
+Как мы видим у нас только появились изменения в конфигурационном файле, а директория
+игнорируется.
+
+$ git status -uall
+On branch master
+Changes not staged for commit:
+ (use "git add <file>..." to update what will be committed)
+ (use "git restore <file>..." to discard changes in working directory)
+ modified:   .gitignore
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+$ git add .
+
+$ git commit -m "Modified .gitignore file"
+[master dc70abc] Modified .gitignore file
+ 1 file changed, 1 insertion(+)
+
+$ git status -uall
+On branch master
+nothing to commit, working tree clean
 
 
 

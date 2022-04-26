@@ -683,6 +683,63 @@ Total 6 (delta 0), reused 0 (delta 0), pack-reused 0
 To https://github.com/bochinskii/test.git
  * [new branch]      main -> main
 
+Вот атк можно посмотреть с каким удаленным репозиторием связан данный локальный
+репозиторий
+
+$ git remote -v
+origin	https://github.com/bochinskii/test.git (fetch)
+origin	https://github.com/bochinskii/test.git (push)
+
+Теперь, когда мы вносим изменения, то нужно делать так
+
+$ echo "Hello again" > file_4.txt
+
+$ git status
+On branch main
+Your branch is based on 'origin/main', but the upstream is gone.
+  (use "git branch --unset-upstream" to fixup)
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	file_4.txt
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+$ git add .
+
+$ git status
+On branch main
+Your branch is based on 'origin/main', but the upstream is gone.
+  (use "git branch --unset-upstream" to fixup)
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	new file:   file_4.txt
+
+$ git commit -m "Add file - file_4.txt"
+[main ac6668a] Add file - file_4.txt
+ 1 file changed, 1 insertion(+)
+ create mode 100644 file_4.txt
+
+$ git status
+On branch main
+Your branch is based on 'origin/main', but the upstream is gone.
+  (use "git branch --unset-upstream" to fixup)
+
+nothing to commit, working tree clean
+
+$ git push https://$GITHUB_ACCESS_TOKEN@github.com/bochinskii/test.git
+Enumerating objects: 4, done.
+Counting objects: 100% (4/4), done.
+Delta compression using up to 6 threads
+Compressing objects: 100% (2/2), done.
+Writing objects: 100% (3/3), 303 bytes | 303.00 KiB/s, done.
+Total 3 (delta 1), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas: 100% (1/1), completed with 1 local object.
+To https://github.com/bochinskii/test.git
+   ae590e0..ac6668a  main -> main
+
+
 
 -----------
 2-й вариант
@@ -701,14 +758,157 @@ $ git branch -M main
 
 $ git push -u origin main
 
+Вот атк можно посмотреть с каким удаленным репозиторием связан данный локальный
+репозиторий
+
+$ git remote -v
+origin	https://<your private access token>@github.com/bochinskii/Git.git (fetch)
+origin	https://<your private access token>@github.com/bochinskii/Git.git (push)
 
 
 
+Теперь, когда мы делаем изменения мы делаем так
+
+$ git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   Git.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+$ git add .
+
+$ git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	modified:   Git.txt
+
+$ git commit -m "Modify Git.txt file"
+[main 74715f0] Modify Git.txt file
+ 1 file changed, 10 insertions(+), 7 deletions(-)
+
+$ git status
+On branch main
+Your branch is ahead of 'origin/main' by 1 commit.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+
+$ git push -u origin main
+Enumerating objects: 5, done.
+Counting objects: 100% (5/5), done.
+Delta compression using up to 6 threads
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 362 bytes | 362.00 KiB/s, done.
+Total 3 (delta 1), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas: 100% (1/1), completed with 1 local object.
+To https://github.com/bochinskii/Git.git
+   1cc057b..74715f0  main -> main
+branch 'main' set up to track 'origin/main'.
 
 
+--------------------------------------------
+Используем в качестве логина не токен, а SSH
+--------------------------------------------
+
+$ cd ~/test
 
 
+Генерируем ssh ключи
 
+ssh-keygen -t rsa -b 4096 -C "denis.bochinskii@gmail.com"
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/denisb/.ssh/id_rsa):
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /home/denisb/.ssh/id_rsa
+Your public key has been saved in /home/denisb/.ssh/id_rsa.pub
+The key fingerprint is:
+SHA256:CVyp9wJesfGwIyUKwHmCywhJX7UPbAZ8WHEy94DtG9w denis.bochinskii@gmail.com
+The key's randomart image is:
++---[RSA 4096]----+
+|=+. .o+*==       |
+|++o..+++%.o      |
+|+.oo .+XoB..     |
+|o.  . *.O=.E     |
+|     . =S+o      |
+|      . ...      |
+|         .       |
+|                 |
+|                 |
++----[SHA256]-----+
+
+
+Далее копируем текст публичного ключа и вставляем в настройки профиля на Github.
+
+Посмотрим как взаимосвязаны локальный репозиторий и удаленный
+
+$ git remote -v
+origin	https://github.com/bochinskii/test.git (fetch)
+origin	https://github.com/bochinskii/test.git (push)
+
+Изменяем
+
+$ git remote set-url origin git@github.com:bochinskii/test.git
+
+$ git remote -v
+origin	git@github.com:bochinskii/test.git (fetch)
+origin	git@github.com:bochinskii/test.git (push)
+
+
+Проверим
+
+$ echo "Hello" > file_5.txt
+
+$ git status
+On branch main
+Your branch is based on 'origin/main', but the upstream is gone.
+  (use "git branch --unset-upstream" to fixup)
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	file_5.txt
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+
+$ git add .
+
+$ git commit -m "Add file - file_5.txt"
+[main f4778d5] Add file - file_5.txt
+ 1 file changed, 1 insertion(+)
+ create mode 100644 file_5.txt
+
+
+$ git status
+On branch main
+Your branch is based on 'origin/main', but the upstream is gone.
+  (use "git branch --unset-upstream" to fixup)
+
+nothing to commit, working tree clean
+
+$ git push origin
+The authenticity of host 'github.com (140.82.121.3)' can't be established.
+ED25519 key fingerprint is SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU.
+This key is not known by any other names
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added 'github.com' (ED25519) to the list of known hosts.
+Enumerating objects: 9, done.
+Counting objects: 100% (9/9), done.
+Delta compression using up to 6 threads
+Compressing objects: 100% (6/6), done.
+Writing objects: 100% (7/7), 806 bytes | 100.00 KiB/s, done.
+Total 7 (delta 3), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas: 100% (3/3), completed with 1 local object.
+To github.com:bochinskii/test.git
+   ac6668a..f4778d5  main -> main
 
 
 

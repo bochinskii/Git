@@ -814,9 +814,9 @@ To https://github.com/bochinskii/Git.git
 branch 'main' set up to track 'origin/main'.
 
 
---------------------------------------------
-Используем в качестве логина не токен, а SSH
---------------------------------------------
+--------------------------------------------------------
+Используем в качестве логина не токен, а SSH (для Linux)
+--------------------------------------------------------
 
 $ cd ~/test
 
@@ -909,6 +909,311 @@ Total 7 (delta 3), reused 0 (delta 0), pack-reused 0
 remote: Resolving deltas: 100% (3/3), completed with 1 local object.
 To github.com:bochinskii/test.git
    ac6668a..f4778d5  main -> main
+
+
+----------------------------------------------------------
+Используем в качестве логина не токен, а SSH (для Windows)
+----------------------------------------------------------
+
+Во время установки Git на Windows были установлены еще дополнительные утилиты.
+Одна из них - "Git Bash".
+
+По факту это bash надстройка. В ней мы генерируем ssh ключи так же как и в Linux'е.
+
+
+
+
+-------------------------------
+Работа с витвлениями (branches)
+-------------------------------
+
+
+По-умолчанию репозиторий создается в branch'е - "Master (Main)". По факту данный branch
+является "золотым". Т.е. на самом деле как происходит:
+- Создается репозиторий
+- Если уже еть локальный репозиторий, то делается привязка
+- Делается копия Master (Main) brach'а в другой branch, где делаются все операции с кодом.
+- Когда уже код проверен и вы убеждены, что все работает хорошо, то делается -
+marge branch'а в master (Main) branch.
+- Если вы больше не будите делать изменения в вашем коде, то "другой" branch удаляют.
+
+
+
+------------------------------------------------------
+Пример использования branch'ей в локальном репозитории
+------------------------------------------------------
+
+$ mkdir ~/test2; cd ~/test2
+
+
+$ git init .
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+Initialized empty Git repository in /home/denisb/WORK/test2/.git/
+
+
+Данная команда показывает какие branch'и есть в данном репозитории.
+Они не показываются до первого commit'а.
+
+$ git branch
+
+$ echo "First string" > file1.txt
+
+$ git add .
+
+$ git commit -m "Create file1.txt"
+[master (root-commit) 0f06219] Create file1.txt
+ 1 file changed, 1 insertion(+)
+ create mode 100644 file1.txt
+
+$ git status
+On branch master
+nothing to commit, working tree clean
+
+$ git branch
+* master
+
+Сделаем копию нашего branch'а , назовем его - "dev" и будем работать
+(т.е. делать изменение контента репозитория) там.
+
+$ git branch dev
+denisb@denisb-ws:~/WORK/test2$ git branch
+ dev
+* master
+
+$ git checkout dev
+Switched to branch 'dev'
+
+$ git branch
+* dev
+ master
+
+Или с помощью одной команды (создадим branch "test" и перейдем в него).
+
+$ git checkout -b test
+
+$ git branch
+  dev
+  master
+* test
+
+
+
+Удалить определенный branch.
+
+$ git checkout dev
+Switched to branch 'dev'
+
+$ git branch -d test
+Deleted branch test (was 0f06219).
+
+$ git branch
+* dev
+  master
+
+
+
+
+Сделаем изменения (напомню, что мы работаем с dev branch'ем)
+
+$ echo "Second string" >> file1.txt
+$ echo "First string" > file2.txt
+
+$ git status
+On branch dev
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   file1.txt
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	file2.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+$ git add .
+
+$ git status
+On branch dev
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	modified:   file1.txt
+	new file:   file2.txt
+
+$ git commit -m "Modify file1.txt and create file2.txt"
+[dev 6ca123a] Modify file1.txt and create file2.txt
+ 2 files changed, 2 insertions(+)
+ create mode 100644 file2.txt
+
+$ git status
+On branch dev
+nothing to commit, working tree clean
+
+
+
+
+Вот так выглядит лог данного репозитория. Как мы видим, у нас было сделано два
+commit'а. Один в branch master, а второй в dev.
+
+$ git log
+commit 6ca123adf22bd57b92a7066290019b50b07b8f08 (HEAD -> dev)
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Wed Apr 27 14:21:12 2022 +0300
+
+    Modify file1.txt and create file2.txt
+
+commit 0f0621989091d6cd908bbe6417eb6107a19e92e8 (master)
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Wed Apr 27 13:57:50 2022 +0300
+
+    Create file1.txt
+
+
+
+А теперь для наглядности посмотрим как выглядит контент на наших branch'ах.
+Само собой контент репозитория должен отличаться.
+
+$ git branch
+* dev
+  master
+
+$ ls -l
+total 8
+-rw-rw-r-- 1 denisb denisb 27 апр 27 14:20 file1.txt
+-rw-rw-r-- 1 denisb denisb 13 апр 27 14:20 file2.txt
+
+$ cat file1.txt
+First string
+Second string
+
+$ cat file2.txt
+First string
+
+$ git checkout master
+Switched to branch 'master'
+
+$ git branch
+  dev
+* master
+
+$ ls -l
+total 4
+-rw-rw-r-- 1 denisb denisb 13 апр 27 14:26 file1.txt
+
+$ cat file1.txt
+First string
+
+
+Например, нас устраивает код в dev и теперь мы хотим перенести его в master
+branch.
+
+$ git branch
+  dev
+* master
+
+$ git merge dev
+Updating 0f06219..6ca123a
+Fast-forward
+ file1.txt | 1 +
+ file2.txt | 1 +
+ 2 files changed, 2 insertions(+)
+ create mode 100644 file2.txt
+
+
+Как мы видим все commit'ы у нас на обоих bracnh'ах.
+
+$ git log
+commit 6ca123adf22bd57b92a7066290019b50b07b8f08 (HEAD -> master, dev)
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Wed Apr 27 14:21:12 2022 +0300
+
+    Modify file1.txt and create file2.txt
+
+commit 0f0621989091d6cd908bbe6417eb6107a19e92e8
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Wed Apr 27 13:57:50 2022 +0300
+
+    Create file1.txt
+
+
+Опять перейдем в dev, сделаем изменения и посмотрим что получилось
+
+$ git checkout dev
+Switched to branch 'dev'
+denisb@denisb-ws:~/WORK/test2$ git branch
+* dev
+  master
+
+$ echo "First string" > file3.txt
+$ git add .
+$ git commit -m "Create file3.txt"
+[dev fd8a4e1] Create file3.txt
+ 1 file changed, 1 insertion(+)
+ create mode 100644 file3.txt
+
+
+Теперь опять видим, что последний commit совершен только на dev.
+
+$ git log
+commit fd8a4e12cc486e5ab7e9c76254c35ae2b045ed1c (HEAD -> dev)
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Wed Apr 27 14:45:08 2022 +0300
+
+    Create file3.txt
+
+commit 6ca123adf22bd57b92a7066290019b50b07b8f08 (master)
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Wed Apr 27 14:21:12 2022 +0300
+
+    Modify file1.txt and create file2.txt
+
+commit 0f0621989091d6cd908bbe6417eb6107a19e92e8
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Wed Apr 27 13:57:50 2022 +0300
+
+    Create file1.txt
+
+
+
+А теперь не будем делать merge. Допустим мы поняли, что напортачили в dev
+и теперь хотим перейти в master, а dev удалить.
+
+$ git checkout master
+Switched to branch 'master'
+denisb@denisb-ws:~/WORK/test2$ git branch
+  dev
+* master
+
+
+Мы видм ошибку, которая гворит о том, что в dev был сделан commit, но мы не сделали
+merge в master.
+
+$ git branch -d dev
+error: The branch 'dev' is not fully merged.
+If you are sure you want to delete it, run 'git branch -D dev'.
+
+
+Удалить такой branch можно вот так
+
+$ git branch -D dev
+Deleted branch dev (was fd8a4e1).
+
+
+
+
+
+
+
+
 
 
 

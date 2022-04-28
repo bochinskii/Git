@@ -1,0 +1,590 @@
+----------------------------------------
+Варианты возврата на определенный commit
+----------------------------------------
+
+
+----------------------------------------------------
+Откатиться на определенный commit с помощью checkout
+(не удаляя commit'ы)
+----------------------------------------------------
+
+Смотрим какие commit'ы у нас есть
+
+$ git log
+commit 780511b9ff4f9ad9f65301eecb96160d37878bf1 (HEAD -> master)
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 13:02:23 2022 +0300
+
+    Create file3.txt
+
+commit 6ca123adf22bd57b92a7066290019b50b07b8f08
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Wed Apr 27 14:21:12 2022 +0300
+
+    Modify file1.txt and create file2.txt
+
+commit 0f0621989091d6cd908bbe6417eb6107a19e92e8
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Wed Apr 27 13:57:50 2022 +0300
+
+    Create file1.txt
+
+
+$ ls -l
+total 12
+-rw-rw-r-- 1 denisb denisb 27 апр 28 13:05 file1.txt
+-rw-rw-r-- 1 denisb denisb 13 апр 28 13:05 file2.txt
+-rw-rw-r-- 1 denisb denisb 13 апр 28 13:05 file3.txt
+
+
+Перейдем на первый сделанный commit (введем его хэш), в котором создан только file1.txt с одной
+текстовой строкой
+
+$ git checkout 0f0621989091d6cd908bbe6417eb6107a19e92e8
+Note: switching to '0f0621989091d6cd908bbe6417eb6107a19e92e8'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+HEAD is now at 0f06219 Create file1.txt
+
+
+Можно заметить, что мы (HEAD) отсоеденены (detached) от нашего последнего commit'а.
+
+Как мы видим у нас только первый commit. Мы можем внести изменения и сделать commit,
+но если мы потом вернем все как было, то мы потеряем данный commit.
+
+Из подсказки в команде checkout можно заметить, что такой метод подходит для того,
+чтобы откатиться на определенный commit, возможно сделать какие-то изменения,
+скопировать его в новый branch, ну и если надо, то восстановить обратно все commit'ы.
+
+$ git log
+commit 0f0621989091d6cd908bbe6417eb6107a19e92e8 (HEAD)
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Wed Apr 27 13:57:50 2022 +0300
+
+    Create file1.txt
+
+$ ls -l
+total 4
+-rw-rw-r-- 1 denisb denisb 13 апр 28 13:07 file1.txt
+
+$ cat file1.txt
+First string
+
+Внесем изменения и сделаем commit
+
+$ rm *
+
+$ $ touch super_puper_file_{1,2,3,4,5}.txt
+
+$ ls -l
+total 0
+-rw-rw-r-- 1 denisb denisb 0 апр 28 13:30 super_puper_file_1.txt
+-rw-rw-r-- 1 denisb denisb 0 апр 28 13:30 super_puper_file_2.txt
+-rw-rw-r-- 1 denisb denisb 0 апр 28 13:30 super_puper_file_3.txt
+-rw-rw-r-- 1 denisb denisb 0 апр 28 13:30 super_puper_file_4.txt
+-rw-rw-r-- 1 denisb denisb 0 апр 28 13:30 super_puper_file_5.txt
+
+$ git status
+HEAD detached at 0f06219
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    file1.txt
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	super_puper_file_1.txt
+	super_puper_file_2.txt
+	super_puper_file_3.txt
+	super_puper_file_4.txt
+	super_puper_file_5.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+$ git add .
+
+$ git commit -m "I'am crazy"
+[detached HEAD cf20ecf] I'am crazy
+ 6 files changed, 1 deletion(-)
+ delete mode 100644 file1.txt
+ create mode 100644 super_puper_file_1.txt
+ create mode 100644 super_puper_file_2.txt
+ create mode 100644 super_puper_file_3.txt
+ create mode 100644 super_puper_file_4.txt
+ create mode 100644 super_puper_file_5.txt
+
+$ git status
+HEAD detached from 0f06219
+nothing to commit, working tree clean
+
+Как мы видим у нас появился еще один commit, но как мы писали ранее,
+стоит нам вернуть все обратно, как все сделанные commit'ы (в нашем случае только
+один) удалятся.
+
+$ git log
+commit cf20ecfd7146ab497dc24ab58b3f4171cb33567d (HEAD)
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 13:31:02 2022 +0300
+
+    I'am crazy
+
+commit 0f0621989091d6cd908bbe6417eb6107a19e92e8
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Wed Apr 27 13:57:50 2022 +0300
+
+    Create file1.txt
+
+
+
+Вернут все commit'ы обратно. Тут можно заметить, что нас предупреждают о том,
+что commit "I'am crazy" удалился.
+
+$ git checkout master
+Warning: you are leaving 1 commit behind, not connected to
+any of your branches:
+
+  cf20ecf I'am crazy
+
+If you want to keep it by creating a new branch, this may be a good time
+to do so with:
+
+ git branch <new-branch-name> cf20ecf
+
+Switched to branch 'master'
+
+$ git log
+commit 780511b9ff4f9ad9f65301eecb96160d37878bf1 (HEAD -> master)
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 13:02:23 2022 +0300
+
+    Create file3.txt
+
+commit 6ca123adf22bd57b92a7066290019b50b07b8f08
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Wed Apr 27 14:21:12 2022 +0300
+
+    Modify file1.txt and create file2.txt
+
+commit 0f0621989091d6cd908bbe6417eb6107a19e92e8
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Wed Apr 27 13:57:50 2022 +0300
+
+    Create file1.txt
+
+
+$ ls -l
+total 12
+-rw-rw-r-- 1 denisb denisb 27 апр 28 13:34 file1.txt
+-rw-rw-r-- 1 denisb denisb 13 апр 28 13:34 file2.txt
+-rw-rw-r-- 1 denisb denisb 13 апр 28 13:34 file3.txt
+
+
+
+------------------------------------------------
+(Бонус) Изменить комментарий последнего commit'а
+------------------------------------------------
+
+$ git log
+commit 780511b9ff4f9ad9f65301eecb96160d37878bf1 (HEAD -> master)
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 13:02:23 2022 +0300
+
+    Create file3.txt
+
+commit 6ca123adf22bd57b92a7066290019b50b07b8f08
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Wed Apr 27 14:21:12 2022 +0300
+
+    Modify file1.txt and create file2.txt
+
+commit 0f0621989091d6cd908bbe6417eb6107a19e92e8
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Wed Apr 27 13:57:50 2022 +0300
+
+    Create file1.txt
+
+
+После данной команды откроется редактор в котором можно изменить комментарий
+к последнему commit'у
+
+$ git commit --amend
+[master b7d5206] Add file3.txt
+ Date: Thu Apr 28 13:02:23 2022 +0300
+ 1 file changed, 1 insertion(+)
+ create mode 100644 file3.txt
+
+$ git log
+commit b7d5206095b24e1e4d9b57a3cde0360d26938ada (HEAD -> master)
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 13:02:23 2022 +0300
+
+    Add file3.txt
+
+commit 6ca123adf22bd57b92a7066290019b50b07b8f08
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Wed Apr 27 14:21:12 2022 +0300
+
+    Modify file1.txt and create file2.txt
+
+commit 0f0621989091d6cd908bbe6417eb6107a19e92e8
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Wed Apr 27 13:57:50 2022 +0300
+
+    Create file1.txt
+
+
+
+
+
+----------------------------------------------------
+Откатиться на определенный commit с помощью reset
+(удаляя commit'ы)
+----------------------------------------------------
+
+
+$ git log
+commit 734ea53eee2de32d7533b3b37e95421bfb1dd37a (HEAD -> master)
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 13:51:21 2022 +0300
+
+    Add file6.txt
+
+commit 3ee4e0e9e6fc9aa5b5e7eb37aac076b790488d3d
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 13:50:51 2022 +0300
+
+    Add file5.txt
+
+commit ac5c288306ab981a73ca674b9086ac8bd1ab43c9
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 13:49:54 2022 +0300
+
+    Add file4.txt
+
+commit b7d5206095b24e1e4d9b57a3cde0360d26938ada
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 13:02:23 2022 +0300
+
+    Add file3.txt
+
+commit 6ca123adf22bd57b92a7066290019b50b07b8f08
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Wed Apr 27 14:21:12 2022 +0300
+
+    Modify file1.txt and create file2.txt
+
+commit 0f0621989091d6cd908bbe6417eb6107a19e92e8
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Wed Apr 27 13:57:50 2022 +0300
+
+    Create file1.txt
+
+$ ls -l
+total 12
+-rw-rw-r-- 1 denisb denisb 27 апр 28 13:34 file1.txt
+-rw-rw-r-- 1 denisb denisb 13 апр 28 13:34 file2.txt
+-rw-rw-r-- 1 denisb denisb 13 апр 28 13:34 file3.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 13:49 file4.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 13:50 file5.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 13:51 file6.txt
+
+Например, нам нужно вернуться на commit - "Add file3.txt", а это значит,
+что нам нужно удалить 3-и commit'а с верху.
+
+$ git reset --hard HEAD~3
+HEAD is now at b7d5206 Add file3.txt
+
+$ git log
+commit b7d5206095b24e1e4d9b57a3cde0360d26938ada (HEAD -> master)
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 13:02:23 2022 +0300
+
+    Add file3.txt
+
+commit 6ca123adf22bd57b92a7066290019b50b07b8f08
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Wed Apr 27 14:21:12 2022 +0300
+
+    Modify file1.txt and create file2.txt
+
+commit 0f0621989091d6cd908bbe6417eb6107a19e92e8
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Wed Apr 27 13:57:50 2022 +0300
+
+    Create file1.txt
+
+$ ls -l
+total 12
+-rw-rw-r-- 1 denisb denisb 27 апр 28 13:34 file1.txt
+-rw-rw-r-- 1 denisb denisb 13 апр 28 13:34 file2.txt
+-rw-rw-r-- 1 denisb denisb 13 апр 28 13:34 file3.txt
+
+
+
+------------------
+Удаление commit'ов
+------------------
+
+
+Естественно, что commit'ы занимают место на диске. Если вы хотите удалить
+ненужные commit'ы и тем самым освободить место, воспользуйтесь данным методом.
+
+Тут логика достаточно сложная. Лучше разобрать на примере.
+
+$ git log
+commit 3544a91b67aaebde828e894966baa88cd7277e57 (HEAD -> master)
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 14:11:14 2022 +0300
+
+    Add f7.txt
+
+commit c19a1d2a5552b6dc430926107ba07e7a6052a4b9
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 14:11:06 2022 +0300
+
+    Add f6.txt
+
+commit 3d6efb347d36fe88cb7d41843bfd5299b9485637
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 14:10:55 2022 +0300
+
+    Add f5.txt
+
+commit 34c1d545681b4764804b96e21a43cee501c43ac5
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 14:10:48 2022 +0300
+
+    Add f4.txt
+
+commit b7d084529dc18a92796a05b27f2934d7fbb73fbb
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 14:10:40 2022 +0300
+
+    Add f3.txt
+
+commit f39d586b4fbc5bed2125e7a97be23b9afb8918db
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 14:10:30 2022 +0300
+
+    Add f2.txt
+
+commit c884d6c5399ecedb69729b80ab8f986a073dd6ac
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 14:10:20 2022 +0300
+
+    Add f1.txt
+
+commit 1206a0b070ae7936d492eb4a35cb1de284e33532
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 14:09:41 2022 +0300
+
+    Init commit (README)
+
+$ ls -l
+total 4
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:10 f1.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:10 f2.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:10 f3.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:10 f4.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:10 f5.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:10 f6.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:11 f7.txt
+-rw-rw-r-- 1 denisb denisb 31 апр 28 14:08 README.txt
+
+
+Мы удаляем commit'ы с верху в низ, но файлы и изменения в репозитории остаются прежние
+
+$ git reset --soft HEAD~4
+
+$ git log
+commit b7d084529dc18a92796a05b27f2934d7fbb73fbb (HEAD -> master)
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 14:10:40 2022 +0300
+
+    Add f3.txt
+
+commit f39d586b4fbc5bed2125e7a97be23b9afb8918db
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 14:10:30 2022 +0300
+
+    Add f2.txt
+
+commit c884d6c5399ecedb69729b80ab8f986a073dd6ac
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 14:10:20 2022 +0300
+
+    Add f1.txt
+
+commit 1206a0b070ae7936d492eb4a35cb1de284e33532
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 14:09:41 2022 +0300
+
+    Init commit
+
+$ ls -l
+total 4
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:57 f1.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:57 f2.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:57 f3.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:57 f4.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:57 f5.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:57 f6.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:57 f7.txt
+-rw-rw-r-- 1 denisb denisb 31 апр 28 14:57 README.txt
+
+
+Теперь давайте перейдем на самый первый commit.
+
+$ git checkout 1206a0b070ae7936d492eb4a35cb1de284e33532
+A	f4.txt
+A	f5.txt
+A	f6.txt
+A	f7.txt
+Note: switching to '1206a0b070ae7936d492eb4a35cb1de284e33532'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+HEAD is now at 1206a0b Init commit
+
+$ git log
+commit 1206a0b070ae7936d492eb4a35cb1de284e33532 (HEAD)
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 14:09:41 2022 +0300
+
+    Init commit
+
+
+Что произошло?
+
+С помощью команды "git reset --soft HEAD~4", удалили последние 4 comit'а, а
+изменения в этих commit'ах (создание файлов f4.txt - f7.txt) были пернесены в самый первый commit.
+
+Теперь мы с помощью команды - "git checkout 1206a0b070ae7936d492eb4a35cb1de284e33532"
+перешли в самый первый commit, где небыло файлов вобоще (кроме файла README.txt),
+но мы видим еще и файлы (f4.txt - f7.txt) созданные в commit'ах, которые мы удалили ранее.
+
+Выглядит несколько запутано, но пример довольно таки наглядный.
+
+$ ls -l
+total 4
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:57 f4.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:57 f5.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:57 f6.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:57 f7.txt
+-rw-rw-r-- 1 denisb denisb 31 апр 28 14:57 README.txt
+
+
+Этот пример не особо практичный т.к. подобные действия только запутывают.
+Поэтому удаление commit'ов в основном применяется тогда, когда
+вы сделали последний commit и вы уверены, что предыдущие не нужны. И тогда вы делаете
+soft reset на самый первый commit, хотя изменения остаются.
+
+Вот пример
+
+
+$ ls -l
+total 4
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:10 f1.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:10 f2.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:10 f3.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:10 f4.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:10 f5.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:10 f6.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:11 f7.txt
+-rw-rw-r-- 1 denisb denisb 31 апр 28 14:08 README.txt
+
+$ git log
+commit 3544a91b67aaebde828e894966baa88cd7277e57 (HEAD -> master)
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 14:11:14 2022 +0300
+
+    Add f7.txt
+
+commit c19a1d2a5552b6dc430926107ba07e7a6052a4b9
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 14:11:06 2022 +0300
+
+    Add f6.txt
+
+commit 3d6efb347d36fe88cb7d41843bfd5299b9485637
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 14:10:55 2022 +0300
+
+    Add f5.txt
+
+commit 34c1d545681b4764804b96e21a43cee501c43ac5
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 14:10:48 2022 +0300
+
+    Add f4.txt
+
+commit b7d084529dc18a92796a05b27f2934d7fbb73fbb
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 14:10:40 2022 +0300
+
+    Add f3.txt
+
+commit f39d586b4fbc5bed2125e7a97be23b9afb8918db
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 14:10:30 2022 +0300
+
+    Add f2.txt
+
+commit c884d6c5399ecedb69729b80ab8f986a073dd6ac
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 14:10:20 2022 +0300
+
+    Add f1.txt
+
+commit 1206a0b070ae7936d492eb4a35cb1de284e33532
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 14:09:41 2022 +0300
+
+    Init commit
+
+$ git reset --soft HEAD~7
+
+$ ls -l
+total 4
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:10 f1.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:10 f2.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:10 f3.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:10 f4.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:10 f5.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:10 f6.txt
+-rw-rw-r-- 1 denisb denisb  0 апр 28 14:11 f7.txt
+-rw-rw-r-- 1 denisb denisb 31 апр 28 14:08 README.txt
+
+$ git log
+commit 1206a0b070ae7936d492eb4a35cb1de284e33532 (HEAD -> master)
+Author: Denis Bochinskii <denis.bochinskii@gmail.com>
+Date:   Thu Apr 28 14:09:41 2022 +0300
+
+    Init commit

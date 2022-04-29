@@ -98,7 +98,7 @@ nothing to commit, working tree clean
 Но, как видим с августа 2021 года парольная аутентификация отменена.
 
 $ git push origin
-Username for 'https://github.com': bochinskii
+Username for 'https://github.com': <your username>
 Password for 'https://bochinskii@github.com':
 remote: Support for password authentication was removed on August 13, 2021. Please use a personal access token instead.
 remote: Please see https://github.blog/2020-12-15-token-authentication-requirements-for-git-operations/ for more information.

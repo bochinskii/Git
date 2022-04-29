@@ -1801,6 +1801,259 @@ Date:   Thu Apr 28 14:09:41 2022 +0300
     Init commit
 
 
+---------------------------------------------------
+Полный рабочий процесс на примере проекта rocinante
+---------------------------------------------------
+
+
+-----------------------------------------
+Связь локального и удаленного репозитория
+-----------------------------------------
+
+
+Создаем пустой репозиторий на GitHub.
+
+Переходим в директорию с проектом
+
+$ cd ~/rocinante
+
+$ git init .
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+Initialized empty Git repository in /home/denisb/WORK/rocinante/.git/
+
+
+Видим, что привязки к удалленному репозиторию нет (что и не удивительно)
+
+$ git remote -v
+
+Добавляем связь с удаленным репозиторием (используем ssh).
+
+$ git remote add origin git@github.com:bochinskii/rocinante.git
+
+$ git remote -v
+origin	git@github.com:bochinskii/rocinante.git (fetch)
+origin	git@github.com:bochinskii/rocinante.git (push)
+
+
+$ git status -uall
+On branch master
+
+No commits yet
+
+Untracked files:
+ (use "git add <file>..." to include in what will be committed)
+ REAMDE.md
+ amazon/rocinante-users-amazon-nginx.txt
+ debian_11/rocinante-debian-apache.txt
+ debian_11/rocinante-debian-nginx.txt
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+
+Как видим из предыдущей комманды, у нас есть branch - master.
+Переименнуем его в - main, т.к. "золотой" branch у GitHub'а называется - main.
+
+$ git branch -M main
+
+$ git status -uall
+On branch main
+
+No commits yet
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	REAMDE.md
+	amazon/rocinante-users-amazon-nginx.txt
+	debian_11/rocinante-debian-apache.txt
+	debian_11/rocinante-debian-nginx.txt
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+$ git add .
+
+$ git commit -m "Init commit"
+[main (root-commit) c6c4800] Init commit
+4 files changed, 5019 insertions(+)
+create mode 100644 REAMDE.md
+create mode 100644 amazon/rocinante-users-amazon-nginx.txt
+create mode 100644 debian_11/rocinante-debian-apache.txt
+create mode 100644 debian_11/rocinante-debian-nginx.txt
+
+$ git status -uall
+On branch main
+nothing to commit, working tree clean
+
+Заливаем на удоленный репозиторий
+
+$ git push -u origin main
+Enumerating objects: 15, done.
+Counting objects: 100% (15/15), done.
+Delta compression using up to 6 threads
+Compressing objects: 100% (15/15), done.
+Writing objects: 100% (15/15), 21.24 KiB | 1.93 MiB/s, done.
+Total 15 (delta 5), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas: 100% (5/5), done.
+To github.com:bochinskii/rocinante.git
+ * [new branch]      main -> main
+branch 'main' set up to track 'origin/main'.
+
+
+---------------------------------------------------------------
+Клонирование удаленного репозитория и создание другого branch'а
+---------------------------------------------------------------
+
+Например, у нас появился сотрудник, который тоже будет работать над этим проектом.
+
+
+Клонируем репозиторий себе (сделаем это с помощью https)
+
+$ git clone https://github.com/bochinskii/rocinante.git
+Cloning into 'rocinante'...
+remote: Enumerating objects: 15, done.
+remote: Counting objects: 100% (15/15), done.
+remote: Compressing objects: 100% (10/10), done.
+remote: Total 15 (delta 5), reused 15 (delta 5), pack-reused 0
+Receiving objects: 100% (15/15), 21.24 KiB | 5.31 MiB/s, done.
+Resolving deltas: 100% (5/5), done.
+
+$ ls -l
+total 4
+drwxrwxr-x 5 denisb denisb 4096 апр 29 12:34 rocinante
+
+$ cd rocinante
+
+$ ls -la
+total 24
+drwxrwxr-x 5 denisb denisb 4096 апр 29 12:34 .
+drwxrwxr-x 3 denisb denisb 4096 апр 29 12:34 ..
+drwxrwxr-x 2 denisb denisb 4096 апр 29 12:34 amazon
+drwxrwxr-x 2 denisb denisb 4096 апр 29 12:34 debian_11
+drwxrwxr-x 8 denisb denisb 4096 апр 29 12:34 .git
+-rw-rw-r-- 1 denisb denisb  108 апр 29 12:34 REAMDE.md
+
+
+Поменяем branch
+
+$ git branch
+* main
+
+$ git checkout -b dev
+Switched to a new branch 'dev'
+
+$ git branch
+* dev
+  main
+
+
+Делаем изменения в локальном репозитории в branch'е - dev
+
+$ git status
+On branch dev
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   debian_11/rocinante-debian-nginx.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+$ git add .
+
+$ git commit -m "Modify file - rocinante-debian-nginx"
+[dev 23d7ccb] Modify file - rocinante-debian-nginx
+ 1 file changed, 117 insertions(+), 100 deletions(-)
+
+$ git status
+On branch dev
+nothing to commit, working tree clean
+
+
+
+Отправим в удаленный репозиторий
+
+$ git remote -v
+origin	https://github.com/bochinskii/rocinante.git (fetch)
+origin	https://github.com/bochinskii/rocinante.git (push)
+
+Как видно из предыдущей команды у нас настроено https соединение. Можно настроить
+ssh, соединение (как в предыдущем варианте), но для разнообразия будем использовать - https.
+Но тут нужно сгенерировать токен (с августа 2020 года п логину и паролю создавать
+соединения нельзя)
+
+$ export GITHUB_ACCESS_TOKEN=<youe personal access token>
+
+$ git remote set-url origin https://$GITHUB_ACCESS_TOKEN@github.com/bochinskii/rocinante.git
+
+$ git remote -v
+origin	https://<your token>@github.com/bochinskii/rocinante.git (fetch)
+origin	https://<your token>@github.com/bochinskii/rocinante.git (push)
+
+# git push -u origin dev
+Enumerating objects: 7, done.
+Counting objects: 100% (7/7), done.
+Delta compression using up to 6 threads
+Compressing objects: 100% (4/4), done.
+Writing objects: 100% (4/4), 1.73 KiB | 591.00 KiB/s, done.
+Total 4 (delta 3), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas: 100% (3/3), completed with 3 local objects.
+remote:
+remote: Create a pull request for 'dev' on GitHub by visiting:
+remote:      https://github.com/bochinskii/rocinante/pull/new/dev
+remote:
+To https://github.com/bochinskii/rocinante.git
+* [new branch]      dev -> dev
+branch 'dev' set up to track 'origin/dev'.
+
+
+Как видно из вывода команды выше, в репозитории GitGHub не было branch'а - dev, но
+он создался. Таким образом, если мы перейдем на страницу нашего репозитория в GitHub, то
+кроме branch'а - main у нас будет создан - dev.
+
+
+Как только вы поняли, что нужно делать merge из dev в main, то на сайте GitHub в
+репозитории в branch'е - dev, будет кнопка - "Compare and pull request", а далее
+- "Create pull request".
+
+Далее у вас или у уполномоченного лица в вашей компании есть возможность на
+данном этапе проверить изменения. Если все хорошо, то нажимаем "Merge pull request"
+
+После этого вы можете удалить branch - dev прямо на сайте GitHub нажав определенную кнопку,
+но мы покажем как это сделать удаленно из командной строки.
+
+$ git branch
+* dev
+  main
+
+$ git checkout main
+Switched to branch 'main'
+Your branch is up to date with 'origin/main'.
+
+$ git branch
+  dev
+* main
+
+$ git branch -d dev
+warning: deleting branch 'dev' that has been merged to
+         'refs/remotes/origin/dev', but not yet merged to HEAD.
+Deleted branch dev (was b0f1916).
+
+$ git branch
+* main
+
+$ git push origin --delete dev
+To https://github.com/bochinskii/rocinante.git
+ - [deleted]         dev
+
+Если зайти на сайт GitHub в данный репозиторий, то branch'а - dev нет.
+
 
 
 

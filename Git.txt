@@ -2048,11 +2048,136 @@ Deleted branch dev (was b0f1916).
 $ git branch
 * main
 
-$ git push origin --delete dev
+$ git push origin -d dev
 To https://github.com/bochinskii/rocinante.git
  - [deleted]         dev
 
 Если зайти на сайт GitHub в данный репозиторий, то branch'а - dev нет.
+
+
+
+
+
+
+
+
+------------------------------
+GitHub Actions (автоматизация)
+------------------------------
+
+------------
+Общие знания
+------------
+
+
+GitHub Actions позволяют автоматизитовать тестирование (test), сборку (build) и
+развертывание (deploy) без поднятия серверов автоматизации (Jenkins).
+
+Как это выглядит с поднятием серверов автоматизации, типа Jenkins.
+Делается push (или merge) кода в main репозиторий github'а. Настроенный триггер запускает
+jenkins job. Далее, Jenkins производит test, build, deploy данного кода. Так вот,
+GutHub Actions - это замена Jenkins.
+
+
+Данная автоматизация осуществляется путем создания и конйигурирования файла в
+вашем репозитории - ".github/workflows/<name>.yml". Данный файл создается из
+web интерфейса GitHub или вручную.
+
+Чтобы создать и конфигурировать данный файл, нужно на GitHub в определенном репозитори
+выбрать вкладку - "Actions", выбрать шаблон и конфигурировать. Так же можно
+создать данный файл в ручную и редактировать локально с помощью блокнота или "nano",
+но тогда не будет шаблонов, а для новичков все же шаблоны облегчают работу с данным файлом.
+Тем более, что если редактировать через сайт GitHub, то можно использовать автодополнение
+кода (Ctrl + space).
+
+Ниже приведен очень простой пример файла - .github/workflows/test.yml.
+Тут разбираются переменные разных типов.
+
+Директива - on, говорит при аком действии выполнять jobs'ы. В нашем случае
+они выполняются при выполнении push в branch - main.
+
+Директива - workflow_dispatch дает возможность запускать данный action вручную.
+
+Мы создали 2 jobs'а: some_test_job и some_deploy_job.
+Директива - runs-on говорит о том, какой docker образ GitHub запустит
+для проделывания шагов (steps). Директива steps описывает шаги,которые будут сделаны в данном job'е.
+
+name: Action_learning
+
+# Global Variables
+env:
+  AUTHOR: "Denis Bochinskii"
+  ACTION_NAME: "Action learning"
+
+on:
+  push:
+    branches: [ main ]
+
+  workflow_dispatch:
+
+
+jobs:
+
+  some_test_job:
+    # Job variables
+    env:
+      JOB_NAME: "some_test_job"
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Welcome message on test job
+        # Step Variables
+        env:
+          STEP_NAME: "Welcome message on test job"
+        run: |
+          echo "Hello, this is $STEP_NAME",
+          echo "Welcome on lesson - ${{ env.ACTION_NAME }}",
+          echo "My name is ${{ env.AUTHOR }}",
+          echo "This job's name - ${{ env.JOB_NAME }}".
+
+      - name: Check our work dir
+        run: ls -la
+
+      - name: Copy our repository
+        uses: actions/checkout@v3
+
+      - name: Check our work dir again
+        run: ls -la
+
+  some_deploy_job:
+    env:
+      JOB_NAME: "some_deploy_job"
+
+    runs-on: ubuntu-18.04
+
+    steps:
+
+      - name: "Welcome message on deploy job"
+        env:
+          STEP_NAME: "Welcome message on deploy job"
+        run: |
+          echo "Hello, this is $STEP_NAME",
+          echo "Welcome on lesson - ${{ env.ACTION_NAME }}",
+          echo "My name is ${{ env.AUTHOR }}",
+          echo "This job's name - ${{ env.JOB_NAME }}".
+
+
+Как бонус, есть интересная штука. Если в README.md файл добавить вот такие строки:
+
+Status of our Actions:<br>
+<img src="https://github.com/bochinskii/test/workflows/Action_learning/badge.svg?branch=main"><br>
+
+Denis Bochinskii
+
+то на главной строки репозитория будет показан красивый статус о выполнении
+вашего action'а.
+
+Здесь, Action_learning - это имя вашего action'а.
+
+
+
 
 
 

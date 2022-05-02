@@ -2166,10 +2166,10 @@ jobs:
 
 Как бонус, есть интересная штука. Если в README.md файл добавить вот такие строки:
 
-Status of our Actions:<br>
+
 <img src="https://github.com/bochinskii/test/workflows/Action_learning/badge.svg?branch=main"><br>
 
-Denis Bochinskii
+
 
 то на главной строки репозитория будет показан красивый статус о выполнении
 вашего action'а.

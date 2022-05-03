@@ -588,3 +588,19 @@ Author: Denis Bochinskii <denis.bochinskii@gmail.com>
 Date:   Thu Apr 28 14:09:41 2022 +0300
 
     Init commit
+
+Кстати, бывает так что коммитов много. Как же их подсчитать?
+А вот как
+
+$ git shortlog -s -n
+8  Denis Bochinskii
+
+Значит, чтобы объеденить все commit'ы в один
+
+$ git reset --soft HEAD~7
+
+
+
+
+
+--------------------------------

@@ -36,6 +36,10 @@ web интерфейса GitHub или вручную.
 Директива - workflow_dispatch дает возможность запускать данный action вручную.
 
 Мы создали 2 jobs'а: some_test_job и some_deploy_job.
+
+Директива - needs: some_test_job, говорит о том, что some_deploy_job должен
+запуститься только после some_test_job, а не одновременно как по-умолчанию.
+
 Директива - runs-on говорит о том, какой docker образ GitHub запустит
 для проделывания шагов (steps). Директива steps описывает шаги,которые будут сделаны в данном job'е.
 
@@ -84,6 +88,7 @@ jobs:
         run: ls -la
 
   some_deploy_job:
+    needs: some_test_job
     env:
       JOB_NAME: "some_deploy_job"
 
@@ -112,3 +117,127 @@ Denis Bochinskii
 вашего action'а.
 
 Здесь, Action_learning - это имя вашего action'а.
+
+
+
+---------------
+Еще один пример
+--------------
+
+Тут появится новая переменная о которой мы не говорили. К примеру - ${{ secrets.SSH_KEY }}.
+Это одна из переменных, которую мы можем назначитьв GitHub (ваш репозиторий - settings - secrets).
+Данные секреты используют для того, чтобы скрыть определенную информацию.
+
+Так же есть переменная - ${{ github.sha }}. Это одна из переменных, которая
+некоторую хранит информацию, которая может пригодиться. В нашем примере используется хэш
+commit'а в конце имени zip файла.
+
+Шаг Configure AWS credentials для установки креденшионалов для использования AWS.
+
+В шаге Zip Archive мы делаем архив с файлами нашего сайта.
+
+В шаге Sync мы копируем наш архив на ec2 instance.
+
+В шаге Deploy archive мы разворачиваем архив в ec2 instane'е. Примечательный момент в том,
+что в секрет ${{ secrets.CONFIG_IN_PHP }} мы можем занести целый файл.
+Вот пример кода в данной переменной
+
+<?php
+
+\$i = 0;
+
+/* Server: localhost [1] */
+\$i++;
+\$cfg['Servers'][\$i]['verbose'] = '';
+\$cfg['Servers'][\$i]['host'] = 'localhost';
+\$cfg['Servers'][\$i]['port'] = '';
+\$cfg['Servers'][\$i]['socket'] = '';
+\$cfg['Servers'][\$i]['auth_type'] = 'cookie';
+\$cfg['Servers'][\$i]['user'] = '';
+\$cfg['Servers'][\$i]['password'] = '';
+
+/* End of servers configuration */
+
+\$cfg['DefaultLang'] = 'en';
+\$cfg['blowfish_secret'] = 'ec47443f63eb139e5a07aa4f08ed6e34';
+\$cfg['ServerDefault'] = 1;
+\$cfg['UploadDir'] = '';
+\$cfg['SaveDir'] = '';
+
+\$cfg['TempDir'] = '/var/www/html/rocinante/www/dbadmin/tmp';
+?>
+
+Обратите внимание, что нужно экранировать знак - $, т.к. мы используем команду -
+echo чтобы достать этот код из переменной и перенести в файл. Если этот знак будет
+не экранирован, то команда echo посчитаем данное слова как переменная.
+
+
+
+name: Deploy_archive
+
+on:
+  workflow_dispatch:
+  #push:
+    #branches:
+      #- main
+
+env:
+  AWS_REGION_NAME: "eu-central-1"
+
+jobs:
+
+  CI_part:
+    env:
+      PACKAGE_NAME: rocinante_${{ github.sha }}.zip
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Clone repository
+      uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.GH_ACTION_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.GH_ACTION_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION_NAME }}
+
+    - name: Zip Archive
+      run: |
+        cd ./site
+        zip -q -r ${{ env.PACKAGE_NAME }} ./
+        mv ${{ env.PACKAGE_NAME }} ../
+        cd ..
+
+    - name: Sync
+      run: |
+        IP_ADDRESS=`aws ec2 describe-instances --filters "Name=tag:Name,Values=rocinante" --query "Reservations[*].Instances[*].{IP:PublicIpAddress}" --output text`
+        DEST="ec2-user@$IP_ADDRESS:/home/ec2-user"
+        echo "${{ secrets.SSH_KEY }}" > rocinante.key
+        chmod 0600 rocinante.key
+        rsync -chav --delete -e 'ssh -i ./rocinante.key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }}' ./${{ env.PACKAGE_NAME }} $DEST
+        echo "A file - ${{ env.PACKAGE_NAME }} was sent"
+
+    - name: Deploy archive
+      run: |
+        IP_ADDRESS=`aws ec2 describe-instances --filters "Name=tag:Name,Values=rocinante" --query "Reservations[*].Instances[*].{IP:PublicIpAddress}" --output text`
+        DEST="ec2-user@$IP_ADDRESS:/home/ec2-user"
+        ssh -i rocinante.key -p ${{ secrets.SSH_PORT }} ec2-user@$IP_ADDRESS sudo rm -fr ${{ secrets.SITE_DIR }}/www
+        ssh -i rocinante.key -p ${{ secrets.SSH_PORT }} ec2-user@$IP_ADDRESS sudo mkdir ${{ secrets.SITE_DIR }}/www
+        ssh -i rocinante.key -p ${{ secrets.SSH_PORT }} ec2-user@$IP_ADDRESS sudo unzip -q ${{ env.PACKAGE_NAME }} -d ${{ secrets.SITE_DIR }}/www
+        echo "Set config.in.php"
+        echo "${{ secrets.CONFIG_IN_PHP }}" > config.in.php
+        rsync -chav --delete -e 'ssh -i ./rocinante.key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }}' ./config.in.php $DEST
+        echo "Set settings.php"
+        cp ./site/sites/default/settings.php .
+        echo "${{ secrets.DB_CONFIG_ADD }}" >> settings.php
+        rsync -chav --delete -e 'ssh -i ./rocinante.key -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }}' ./settings.php $DEST
+        echo "Moves all files"
+        ssh -i rocinante.key -p ${{ secrets.SSH_PORT }} ec2-user@$IP_ADDRESS sudo rm -fr ${{ secrets.SITE_DIR }}/www/dbadmin/config.in.php
+        ssh -i rocinante.key -p ${{ secrets.SSH_PORT }} ec2-user@$IP_ADDRESS sudo rm -fr ${{ secrets.SITE_DIR }}/www/sites/default/settings.php
+        ssh -i rocinante.key -p ${{ secrets.SSH_PORT }} ec2-user@$IP_ADDRESS sudo mv /home/ec2-user/config.in.php ${{ secrets.SITE_DIR }}/www/dbadmin/
+        ssh -i rocinante.key -p ${{ secrets.SSH_PORT }} ec2-user@$IP_ADDRESS sudo mv /home/ec2-user/settings.php ${{ secrets.SITE_DIR }}/www/sites/default/
+        ssh -i rocinante.key -p ${{ secrets.SSH_PORT }} ec2-user@$IP_ADDRESS sudo chown -R nginx: ${{ secrets.SITE_DIR }}/www
+        echo "Cleaning"
+        ssh -i rocinante.key -p ${{ secrets.SSH_PORT }} ec2-user@$IP_ADDRESS sudo rm -f /home/ec2-user/${{ env.PACKAGE_NAME }}

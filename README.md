@@ -1,5 +1,5 @@
-<!---
-Status of our Actions:<br>
-<img src="https://github.com/bochinskii/test/workflows/Action_learning/badge.svg?branch=main"><br>
--->
-Copyright - Denis Bochinskii
+<h1>Git - руководство для новичков</h1>
+<br>
+<br>
+<br>
+Denis Bochinskii

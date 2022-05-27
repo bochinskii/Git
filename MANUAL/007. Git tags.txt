@@ -1,0 +1,84 @@
+---------------------
+Использование tags'ов
+---------------------
+
+Мы уже рассматривали переходы на определенные commits'ы. Это не всегда удобно т.к.
+commits'ов может быть много и они могут быть незначительные (малые изменения кода).
+
+Таги хорошо использовать когда у вас появилась определенная версия кода и вы
+хотите это отметить.
+
+Таги назначаются на commits'ы.
+
+Рассморим пример
+
+У нас есть нескольк оcommits'ов.
+
+$ git log --pretty=oneline
+8dfbb7b7544a8370c37b236020bef729bd068b13 (HEAD -> main, origin/main) Modify aws_vpc module #2
+8c761e6d39afc34efa8dde7c0971df08a7a69b69 Modify aws_vpc module #1
+e71a119efa26969cc9fa67f93e3e1e469a294f31 Add aws_web_2_regions_and_ga module
+45a9e7768826848177fd74f0c0c483a1b4841b8a Init commit
+
+Вот у нас появилася "законченный" код т.е. посути появилась версия продукта.
+Давайте это отметим.
+
+Так можно посмотреть какие есть таги
+
+$ git tag
+
+Так назначается таг на последний commit.
+
+$ git tag v1.0.0
+
+$ git tag
+v1.0.0
+
+
+$ git log --pretty=oneline
+8dfbb7b7544a8370c37b236020bef729bd068b13 (HEAD -> main, tag: v1.0.0, origin/main) Modify aws_vpc module #2
+8c761e6d39afc34efa8dde7c0971df08a7a69b69 Modify aws_vpc module #1
+e71a119efa26969cc9fa67f93e3e1e469a294f31 Add aws_web_2_regions_and_ga module
+45a9e7768826848177fd74f0c0c483a1b4841b8a Init commit
+
+Таким образом передаем таг в GitHub
+
+$ git push origin v1.0.0
+Total 0 (delta 0), reused 0 (delta 0), pack-reused 0
+To github.com:bochinskii/terraform-modules.git
+ * [new tag]         v1.0.0 -> v1.0.0
+
+
+Если вы хотите установить таг на определенный commit, то
+
+$ git tag -a v0.0.1 e71a119efa26969cc9fa67f93e3e1e469a294f31
+
+$ git log --pretty=oneline
+8dfbb7b7544a8370c37b236020bef729bd068b13 (HEAD -> main, tag: v1.0.0, origin/main) Modify aws_vpc module #2
+8c761e6d39afc34efa8dde7c0971df08a7a69b69 Modify aws_vpc module #1
+e71a119efa26969cc9fa67f93e3e1e469a294f31 (tag: v0.1.0) Add aws_web_2_regions_and_ga module
+45a9e7768826848177fd74f0c0c483a1b4841b8a Init commit
+
+$ git push origin v0.1.0
+
+или сделать push всех тагов
+
+$ git push origin --tags
+
+
+Перейти на определенную версию кода по тагу
+(вместо того, чтобы это делать с помощью commits'ов)
+
+$ git checkout v0.1.0
+
+Вернутся обратно на последнюю версию
+
+$ git checkout main
+
+
+
+Удалить таги
+
+$ git tag -d v0.1.0
+
+$ git push origin --delete v0.1.0
